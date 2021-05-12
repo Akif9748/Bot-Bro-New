@@ -11,7 +11,7 @@ const axios = require('axios');
             axios.get(`https://api.collectapi.com/pray/single?ezan=Ak%C5%9Fam&data.city=${city.toLowerCase()}`, {
                 headers: {
                     "content-type": "application/json",
-                    "authorization": "apikey 1pHbemnN6LjPR6UnIYgwu0:3Fi6aBZPIFndOl10RH5Iyw"
+                    "authorization": "Your api key."
                 }
             }).then(res => {
                 const messageEmbed = new Discord.MessageEmbed().setDescription(`
