@@ -1,0 +1,8 @@
+**/node_modules
+* .log * .sql * .sqlite
+git rm -r --cached node_modules
+git rm -r --cached *.sql
+git commit -am "node_modules be gone!"
+
+git push origin master
+json.sqlite

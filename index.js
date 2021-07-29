@@ -1,73 +1,126 @@
+var db = require('quick.db')
+var kelime = require('rastgelekelime');
 const Discord = require('discord.js');
 const fs = require("fs");
-const client = new Discord.Client();
-const { token, sahip, prefix } = require('./config.json');
+const client = new Discord.Client({restTimeOffset: 200, messageCacheMaxSize: 50});
+const { sahip, prefix, token } = require('./config.json');
 require('./util/eventHandler.js')(client);
+const fetch = require('node-fetch');
+const prefic = "!!"
 
-//özel//////////////////
-client.commands = new Discord.Collection();
-client.aliases = new Discord.Collection();
-fs.readdirSync('./commands').forEach(dir => {
-  const commandFiles = fs.readdirSync(`./commands/`).filter(file => file.endsWith('.js'));
-  for (const file of commandFiles) {
-    const komutcuklar = require(`./commands/${file}`);
-    if (komutcuklar.help.name){
-      client.commands.set(komutcuklar.help.name, komutcuklar)
-    }
-  }
+client.on('guildMemberAdd', member => {
+  member.send('Merhaba, sunucumuza hoş geldin! \n Hi! Wellcome to the server.')
+    .catch(console.error);
 });
 
+//özel//////////////////
+
+//rank
+client.on("message", async message => { // Her mesaj atıldığında tetiklenen message eventi.
+
+  if(message.author.bot) return; // Mesaj sahibi bir BOT ise çalışmayacaktır.
+  if(message.channel.type === "dm") return; // Mesaj DM'dan geliyorsa çalışmayacaktır.
+
+  let xpekle = Math.floor(Math.random() * 7) + 8; 
+ 
+   if (message.content.length < 4) return;
+
+  if (message.content === "!seviye") return;
+
+  db.add(`xp_${message.author.id}_${message.guild.id}`, xpekle)
 
 
+  if (db.fetch(`xp_${message.author.id}_${message.guild.id}`) > 300) {
+    
+    db.add(`seviye_${message.author.id}_${message.guild.id}`, 1)
+    
+    db.delete(`xp_${message.author.id}_${message.guild.id}`)
+    
+  };
+})
+//rank son
+
+
+//kelime
+
+client.on("message", async message => {
+  if (message.author.bot) return; 
+	  if(message.channel.type === 'dm') return;
+
+	if (message.content.startsWith(prefix + "kelime")) { //yeni oyun
+    const word = kelime() //EKAlojinin modülünden bir kelime.
+    message.channel.send("Oyun başladı\n\n" + word) //kelimeyi yazar
+    const ilkharf = word.split("")[word.split("").length - 1] //son harfi alır
+    db.set(`sonharf_${message.guild.id}`, ilkharf) //son harfi not alır.
+  }
+
+
+  if (message.content.startsWith(prefic)) { //eğer belirlenen prefixle ile başlarsa (her mesajı almasın diye)
+    if (!db.fetch(`sonharf_${message.guild.id}`)) return message.react("⛔")   //Eğer oyun başlamamışsa başlamaz.
+
+    var nkelime = message.content.replace(prefic, "").toLowerCase() //Mesajdaki kelimeyi çok gerekeceği için tanımladık
+
+    if (nkelime.split("")[0] === db.fetch(`sonharf_${message.guild.id}`)) { //dosyanın içiyle yazdığınız kelimenin son harfi uyuyorsa
+      const arama = await fetch("https://sozluk.gov.tr/gts?ara=" + encodeURI(nkelime))
+      const veri = await arama.json(); //tdk sitesinden veri alır.
+      if (veri.error) {
+        message.react("⛔") 
+        message.reply("Kelime yok. Son harf şuydu, hatırlatayım : " + db.fetch(`sonharf_${message.guild.id}`))
+        return
+      } //eğer öyle bir kelime yoksa sitede durur. Ama oyun bitmez, yanlış yazmış olabilirsin.
+      
+      message.react("🆗") //Doğru ise emoji atar
+      const conten = nkelime.split("")[nkelime.split("").length - 1] //son harfi tekrar aldı 
+     db.set(`sonharf_${message.guild.id}`, conten) //son harfi yazdı
+     db.add(`kelimesayac_${message.guild.id}`, 1)
+    } else {
+      message.react("⛔")   //yanlışsa yazıyor 
+      message.reply("Yanlış! Oyun bitti. Şu ana kadar yazılan doğru kelime : " +   db.fetch(`kelimesayac_${message.guild.id}`)) 
+      db.delete(`sonharf_${message.guild.id}`)
+      db.delete(`kelimesayac_${message.guild.id}`) //ve oyunu bitiriyor, !!kelimeadı yazınca çalışmayacak.
+      return;
+    }
+  }
+ 
+});
+
+//////handler:
+client.commands = new Discord.Collection();
+
+
+fs.readdirSync('./commands').forEach(dir => {
+  const commandFiles = fs.readdirSync(`./commands/${dir}/`).filter(file => file.endsWith('.js'));
+  for (const file of commandFiles) {
+    const komutcuklar = require(`./commands/${dir}/${file}`);
+    if (komutcuklar.help.name) {
+    client.commands.set(komutcuklar.help.name, komutcuklar);
+
+  } 
+    }
+  })
 
 client.on("message", message => {
+
+  
 let client = message.client;
   if (message.author.bot) return;
   if (!message.content.startsWith(prefix)) return;
   let command = message.content.split(' ')[0].slice(prefix.length);
   let params = message.content.split(' ').slice(1);
-  let perms = client.elevation(message);
   const args = message.content.slice(prefix.length).trim().split(/ +/);
   let cmd;
-  if (client.commands.has(command)) {
-    cmd = client.commands.get(command);
-  } else if (client.aliases.has(command)) {
-    cmd = client.commands.get(client.aliases.get(command));
-  }
-  if (cmd) {
-    if (perms < cmd.conf.permLevel) return;
-    cmd.run(client, message, params, perms, args);
-  }
+  if (client.commands.has(command)) client.commands.get(command).run(client, message, params,  args);
+ 
+ 
+	
+
+  
 });
 
-client.elevation = message => {
-  if(!message.guild) {
-	return; }
-  let permlvl = 0;
-  if (message.member.hasPermission("BAN_MEMBERS")) permlvl = 2;
-  if (message.member.hasPermission("ADMINISTRATOR")) permlvl = 3;
-  if (message.author.id === sahip) permlvl = 4;
-  if (message.member.hasPermission("MANAGE_MESSAGES")) permlvl = 5;
-  return permlvl;
-};
+
 ////////////////////////////////////////
 
-client.on("guildMemberAdd", (member) => {
-  const guild = member.guild;
-  if (!newUsers[guild.id]) newUsers[guild.id] = new Discord.Collection();
-  newUsers[guild.id].set(member.id, member.user);
 
-  if (newUsers[guild.id].size > 10) {
-    const userlist = newUsers[guild.id].map(u => u.toString()).join(" ");
-    guild.channels.cache.find(channel => channel.name === "genel").send("Welcome our new users!\n" + userlist);
-    newUsers[guild.id].clear();
-  }
-});
-
-client.on("guildMemberRemove", (member) => {
-  const guild = member.guild;
-  if (newUsers[guild.id].has(member.id)) newUsers.delete(member.id);
-});
 
 ////////////////
 
@@ -88,6 +141,15 @@ client.on("message", async message => {
   } else if (message.content.startsWith(`${prefix}dur`)) {
     stop(message, serverQueue);
     return;
+  } else  if (message.content.startsWith(`${prefix}ply`)) {
+    execute(message, serverQueue);
+    return;
+  } else if (message.content.startsWith(`${prefix}skp`)) {
+    skip(message, serverQueue);
+    return;
+  } else if (message.content.startsWith(`${prefix}stp`)) {
+    stop(message, serverQueue);
+    return;
   } 
 });
 
@@ -95,26 +157,22 @@ const ytdl = require("ytdl-core");
   const ytSearch = require('yt-search');
 
 async function execute(message, serverQueue) {
-  const args = message.content.split(" ");
- if (!args[0]) return message.channel.send("Şarkıyı yaz önce.")
+	
+const args = message.content.replace("!play ","").replace("!çal ","");
+
+ if (!args) return message.channel.send("Şarkıyı yaz önce.")
   const voiceChannel = message.member.voice.channel;
   if (!voiceChannel)
-    return message.channel.send(
-      "Müzik dinlemek için ses kanalına girin!"
-    );
+    return message.channel.send("Müzik dinlemek için ses kanalına girin!");
   const permissions = voiceChannel.permissionsFor(message.client.user);
-  if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-    return message.channel.send(
-      "Yetkim yok aga gelmeye :( "
-    );
-  }
+
 
   const videoFinder = async (query) => {
     const videoResult = await ytSearch(query);
     return (videoResult.videos.length > 1) ? videoResult.videos[0] : null;
 } 
-
-const c = await videoFinder(args.join(' '));
+ 
+const c = await videoFinder(args);
 
   const songInfo = await ytdl.getInfo(c.url);
   const song = {
