@@ -4,7 +4,6 @@ const Discord = require('discord.js');
 const fs = require("fs");
 const client = new Discord.Client({restTimeOffset: 200, messageCacheMaxSize: 50});
 const { sahip, prefix, token } = require('./config.json');
-require('./util/eventHandler.js')(client);
 const fetch = require('node-fetch');
 const prefic = "!!"
 
@@ -12,7 +11,8 @@ client.on('guildMemberAdd', member => {
   member.send('Merhaba, sunucumuza hoş geldin! \n Hi! Wellcome to the server.')
     .catch(console.error);
 });
-
+  client.on("message", require(`./events/message.js`));
+  client.on("ready", require(`./events/ready.js`));
 //özel//////////////////
 
 //rank
