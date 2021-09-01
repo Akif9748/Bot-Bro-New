@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
-
+require("discord-banner")("Nzk5NjEzNDI1MDU1NDMyNzE0.YAGICA.CzpV_cR4c4pEpQlC-pORhPT7v5M")
+const { getUserBanner } = require("discord-banner");
 const moment = require("moment")
 require('moment-duration-format');
 
@@ -23,8 +24,8 @@ moment.locale('tr-TR');
             return days + (days == 1 ? " gün" : " gün") + " önce";
         };
 
-  if (!member) return message.reply('Bir kullanıcı belirt !profil veya !profil <Kullanıcı_ID> ')
-
+  if (!member) return message.reply('Bir kullanıcı belirt !profil @Gnarge veya g!profil <Kullanıcı_ID> ')
+  let avatar = message.author.bannerURL({ dynamic: true, format: "gif" })
   const embed = new Discord.MessageEmbed()
   
       .setAuthor(user.tag, user.avatarURL() || user.defaultavatarURL())
@@ -32,7 +33,7 @@ moment.locale('tr-TR');
       .setColor(member.displayHexColor === '#000000' ? '#ffffff' : member.displayHexColor)
       .addField('Sunucudaki bilgileri:',`**Kullanıcı İsmi:** ${member.displayName}\n**Sunucuya Katılım Tarihi:** ${moment.utc(member.joinedAt).format('Do MMMM YYYY')} - ${checkDays(member.joinedAt)} \n**Rolleri:** ${member.roles.cache.sort((b, a) => { return a.position - b.position }).map(role => `${role}`).join(" | ")}`, false)        
       .addField('Kullanıcı bilgisi:',  `\n**Tag**: ${member.user.tag}\n**ID:** ${member.user.id}\n**Discorda Katılış Tarihi**: ${moment.utc(user.createdAt).format('Do MMMM YYYY')} - ${checkDays(user.createdAt)}`, false)
-      
+      .setImage(avatar)
       .setFooter('Bu komutu kullanan kullanıcı ' + message.author.tag, message.author.avatarURL())
       .setTimestamp()
      return message.channel.send(embed)           
