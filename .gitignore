@@ -5,4 +5,4 @@ git rm -r --cached *.sql
 git commit -am "node_modules be gone!"
 
 git push origin master
-json.sqlite
+
