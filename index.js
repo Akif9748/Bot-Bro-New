@@ -87,6 +87,8 @@ client.on("message", async message => { //MÜZİK
   } else if (message.content.startsWith(`${prefix}rpt`) || message.content.startsWith(`${prefix}tekrarla`)) {
     music.repeat(message, serverQueue);
     return;
+  } else if (message.content.toLowerCase() == "cu") {
+    message.reply("Hahahahaha\nhttps://foto.haberler.com/haber/2021/06/17/sj-ne-demek-s-ve-j-hikayesi-nedir-sosyal-14206005_2219_m.jpg");
   }
 });
 
