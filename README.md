@@ -6,7 +6,7 @@ Eskisinin aksine yeni komut yönlendirmeli.
 
 Kodların birazı alıntı olup modifiye edilmiştir. (Bir beş tane çıkar heralde. İftar vb.)
 
-EVENTLER:
+EVENTLAR:
 
 MÜZİK (müzik komutlarının hepsi tek dosyadadır.)
 
