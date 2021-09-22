@@ -1,13 +1,14 @@
 {
   "name": "botbro",
-  "version": "0.0.1",
+  "version": "2.0.1",
   "description": "Discord botum Bot-Bro.",
   "main": "index.js",
   "engines": {
     "node": "14.x"
   },
   "scripts": {
-    "test": "node index.js"
+    "test": "node index.js",
+    "start": "node index.js"
   },
   "author": "Akif9748",
   "license": "ISC",
@@ -17,6 +18,7 @@
   },
   "dependencies": {
     "@codare/codare.ai": "^1.0.2",
+    "@iamtraction/google-translate": "^1.1.2",
     "ascii-table": "0.0.9",
     "axios": "^0.21.1",
     "canvacord": "^5.2.1",
@@ -59,3 +61,4 @@
     "ytdl-core": "^4.8.3"
   }
 }
+
