@@ -1,6 +1,6 @@
 # Bot-Bro-New
 
-Yapımcı: Akif#9748
+Yapımcı: Akif#7304
 
 Eskisinin aksine yeni komut yönlendirmeli.
 
